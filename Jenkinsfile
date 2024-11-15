@@ -25,5 +25,26 @@ pipeline {
                 }
             }
         }
+        stage('docker rm synu') {
+            steps {
+                sh "docker rm -f frontend backend"
+            }
+        }
+        stage('docker compose up synek') {
+            steps {
+                script {
+                    withEnv(["FRONTEND_IMAGE=$frontendImage:$frontendDockerTag", 
+                             "BACKEND_IMAGE=$backendImage:$backendDockerTag"]) {
+                            sh "docker-compose up -d"
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+          sh "docker-compose down"
+          cleanWs()
+        }
     }
 }
