@@ -10,6 +10,10 @@ pipeline {
     environment {
         PIP_BREAK_SYSTEM_PACKAGES = 1
     }
+    
+    tools {
+        terraform 'Terraform'
+    }
 
     parameters {
       string(name: 'backendDockerTag', defaultValue: 'latest', description: 'back image tag desc')
@@ -48,6 +52,18 @@ pipeline {
             steps {
                 sh "pip3 install -r test/selenium/requirements.txt"
                 sh "python3 -m pytest test/selenium/frontendTest.py"
+            }
+        }
+        stage('Terraforma') {
+            steps {
+                dir('Terraform') {                
+                    git branch: 'main', url: 'https://github.com/Bobejoo/Terraform'
+                    withAWS(credentials:'AWS', region: 'us-east-1') {
+                            sh 'terraform init -backend-config=bucket=kuba-es-panda-devops-core-19'
+                            sh 'terraform apply -auto-approve -var bucket_name=kuba-es-panda-devops-core-19'
+                            
+                    } 
+                }
             }
         }
     }
